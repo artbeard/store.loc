@@ -5,27 +5,31 @@ namespace App\Entity;
 use App\Repository\StatementRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\StatementTypes;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: StatementRepository::class)]
 class Statement
 {
-    const POST_IN = 'income';
-	const POST_EX = 'expense';
-	
+
 	#[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    #[ORM\ManyToOne(cascade: ['persist', 'remove'])]
     private ?Product $product = null;
 
     #[ORM\Column(length: 50)]
     private ?string $document_prop = null;
 
     #[ORM\Column(length: 10)]
-    private ?string $post_type = Statement::POST_IN;
+    private ?string $post_type = StatementTypes::POST_IN;
 
+	#[Assert\Range(
+		min: '2023-02-01',
+		max: '2024-02-01',
+	)]
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $posted_at = null;
 
