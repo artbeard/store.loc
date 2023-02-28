@@ -39,6 +39,22 @@ class BalanceRepository extends ServiceEntityRepository
         }
     }
 
+
+	public function findLastPost($product, \DateTimeImmutable $date): ?Balance
+    {
+        return $this->createQueryBuilder('b')
+			->where('b.product = :product_id')
+			->andWhere('b.balance_at <= :balanceAt')
+			->setParameter('product_id', $product)
+			->setParameter('balanceAt', $date->format('Y-m-d'))  //date_format
+			->orderBy('b.balance_at', 'DESC')
+			->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
+
 //    /**
 //     * @return Balance[] Returns an array of Balance objects
 //     */
