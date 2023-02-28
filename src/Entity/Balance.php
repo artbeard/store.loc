@@ -18,10 +18,10 @@ class Balance
     private ?Product $product = null;
 
     #[ORM\Column]
-    private ?int $amount = null;
+    private ?int $amount = 0;
 
     #[ORM\Column]
-    private ?int $cost = null;
+    private ?int $cost = 0;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $balance_at = null;
