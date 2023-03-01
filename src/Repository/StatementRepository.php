@@ -38,15 +38,19 @@ class StatementRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
-    
-    
-    public function getAllBeforeDate($postedAt = null): array
+	
+	/**
+	 * Вытаскивает все проподки по текущую дату
+	 * @param \DateTimeImmutable|null $postedAt
+	 * @return array
+	 */
+    public function getAllBeforeDate(\DateTimeImmutable $postedAt): array
     {
 	    return $this->createQueryBuilder('s')
             ->andWhere('s.posted_at <= :postedAt')
-            ->setParameter('postedAt', $postedAt ?? date('Y-m-d'))
+            ->setParameter('postedAt', $postedAt->format('Y-m-d'))
             ->orderBy('s.id', 'ASC')
-            ->setMaxResults(10)
+            //->setMaxResults(10)
             ->getQuery()
             ->getResult()
         ;
