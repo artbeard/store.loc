@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 
+use App\Service\Preorder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,12 +13,11 @@ use Symfony\Component\Routing\Annotation\Route;
 class ApiPreorderController extends AbstractController
 {
     #[Route('/api/preorder', name: 'app_api_preorder',  methods: 'GET')]
-    public function index(): JsonResponse
+    public function index(Preorder $preorderService): JsonResponse
     {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/ApiPreorderController.php',
-        ]);
+        $preorders = $preorderService->getPreorders();
+        dump($preorders); exit();
+    	return $this->json($preorders);
     }
 	
 	#[Route('/api/preorder', name: 'app_api_preorder_add', methods: 'POST')]
