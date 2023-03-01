@@ -10,12 +10,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\Statement;
 
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
-
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
-
+/**
+ * Контроллер, отвечающий за создание и вывод продуктов
+ */
 class ApiProductController extends AbstractController
 {
     #[Route('/api/product', name: 'app_api_product', methods: ['GET'])]
