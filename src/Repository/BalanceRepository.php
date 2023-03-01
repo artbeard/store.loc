@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Balance;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -39,8 +38,15 @@ class BalanceRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
-
-
+	
+	
+	/**
+	 * Поиск последеней записи для текущего товара
+	 * @param $product
+	 * @param \DateTimeImmutable $date
+	 * @return Balance|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
 	public function findLastPost($product, \DateTimeImmutable $date): ?Balance
     {
         return $this->createQueryBuilder('b')
@@ -54,16 +60,15 @@ class BalanceRepository extends ServiceEntityRepository
             ->getOneOrNullResult()
         ;
     }
-    
-    
-    public function getBalance()
+	
+	/**
+	 * Выборка сальдо на текущую дату прямым запросом к БД
+	 * @param \DateTimeImmutable $date
+	 * @return array
+	 * @throws \Doctrine\DBAL\Exception
+	 */
+    public function getBalance(\DateTimeImmutable $date):array
     {
-//	    $sbq = $this->createQueryBuilder('tmp_b');
-//	    $sbq->select('tmp_b, MAX(tmp_b.balance_at) as max_balance_at');
-//	    //$sbq->from(Balance::class, 'tmp_b');
-//	    $sbq->groupBy('tmp_b.product');
-//
-//	    dump($sbq->getQuery()); exit();
 	    $conn = $this->getEntityManager()->getConnection();
 	    $sql = "SELECT
     			`product`.`id`, `product`.`name`, `balance`.`cost`, `balance`.`amount`, `balance`.`balance_at`
@@ -71,62 +76,16 @@ class BalanceRepository extends ServiceEntityRepository
 			     `product`
 			INNER JOIN
 				(
-				    SELECT `product_id`, MAX(`balance_at`) as `max_balance_at` FROM `balance` GROUP BY `product_id`) as `tmp_t`
+				    SELECT `product_id`, MAX(`balance_at`) as `max_balance_at` FROM `balance` WHERE `balance_at` <= :dateMark GROUP BY `product_id`) as `tmp_t`
 			ON
 			    `product`.`id` = `tmp_t`.`product_id`
 			INNER JOIN
 				`balance`
 			ON
-			    `balance`.`balance_at` = `tmp_t`.`max_balance_at` AND `product`.`id` = `balance`.`product_id`"
-	    ;
+			    `balance`.`balance_at` = `tmp_t`.`max_balance_at` AND `product`.`id` = `balance`.`product_id`";
 	    $stmt = $conn->prepare($sql);
-	    //$stmt->execute();
-	    dump(
-	    	$stmt->executeQuery()->fetchAllAssociative()
-	    );exit;
-	    
-    	$rsm = new ResultSetMapping();
-    	$query = $this->getEntityManager()->createNativeQuery("SELECT
-    			`product`.`id`, `product`.`name`, `balance`.`cost`, `balance`.`amount`, `balance`.`balance_at`
-			FROM
-			     `product`
-			INNER JOIN
-				(
-				    SELECT product_id, MAX(balance_at) as max_balance_at FROM `balance` GROUP BY product_id) as `tmp_t`
-			ON
-			    `product`.`id` = `tmp_t`.`product_id`
-			INNER JOIN
-				balance
-			ON
-			    `balance`.`balance_at` = `tmp_t`.max_balance_at AND product.id = balance.product_id", $rsm);
-	    
-    	return $query->getResult();
+	    $resultSet = $stmt->executeQuery(['dateMark' => $date->format('Y-m-d')]);
+	    return $resultSet->fetchAllAssociative();
     }
     
-
-
-//    /**
-//     * @return Balance[] Returns an array of Balance objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('b')
-//            ->andWhere('b.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('b.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?Balance
-//    {
-//        return $this->createQueryBuilder('b')
-//            ->andWhere('b.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
 }
