@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Balance;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -53,6 +54,55 @@ class BalanceRepository extends ServiceEntityRepository
             ->getOneOrNullResult()
         ;
     }
+    
+    
+    public function getBalance()
+    {
+//	    $sbq = $this->createQueryBuilder('tmp_b');
+//	    $sbq->select('tmp_b, MAX(tmp_b.balance_at) as max_balance_at');
+//	    //$sbq->from(Balance::class, 'tmp_b');
+//	    $sbq->groupBy('tmp_b.product');
+//
+//	    dump($sbq->getQuery()); exit();
+	    $conn = $this->getEntityManager()->getConnection();
+	    $sql = "SELECT
+    			`product`.`id`, `product`.`name`, `balance`.`cost`, `balance`.`amount`, `balance`.`balance_at`
+			FROM
+			     `product`
+			INNER JOIN
+				(
+				    SELECT `product_id`, MAX(`balance_at`) as `max_balance_at` FROM `balance` GROUP BY `product_id`) as `tmp_t`
+			ON
+			    `product`.`id` = `tmp_t`.`product_id`
+			INNER JOIN
+				`balance`
+			ON
+			    `balance`.`balance_at` = `tmp_t`.`max_balance_at` AND `product`.`id` = `balance`.`product_id`"
+	    ;
+	    $stmt = $conn->prepare($sql);
+	    //$stmt->execute();
+	    dump(
+	    	$stmt->executeQuery()->fetchAllAssociative()
+	    );exit;
+	    
+    	$rsm = new ResultSetMapping();
+    	$query = $this->getEntityManager()->createNativeQuery("SELECT
+    			`product`.`id`, `product`.`name`, `balance`.`cost`, `balance`.`amount`, `balance`.`balance_at`
+			FROM
+			     `product`
+			INNER JOIN
+				(
+				    SELECT product_id, MAX(balance_at) as max_balance_at FROM `balance` GROUP BY product_id) as `tmp_t`
+			ON
+			    `product`.`id` = `tmp_t`.`product_id`
+			INNER JOIN
+				balance
+			ON
+			    `balance`.`balance_at` = `tmp_t`.max_balance_at AND product.id = balance.product_id", $rsm);
+	    
+    	return $query->getResult();
+    }
+    
 
 
 //    /**

@@ -25,11 +25,7 @@ class Statement
 
     #[ORM\Column(length: 10)]
     private ?string $post_type = StatementTypes::POST_IN;
-
-	#[Assert\Range(
-		min: '2023-02-01',
-		max: '2024-02-01',
-	)]
+    
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $posted_at = null;
 

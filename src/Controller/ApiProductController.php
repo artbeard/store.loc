@@ -2,24 +2,29 @@
 
 namespace App\Controller;
 
+use App\Service\Normalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\Statement;
+
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
+
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 class ApiProductController extends AbstractController
 {
     #[Route('/api/product', name: 'app_api_product', methods: ['GET'])]
-    public function index(Statement $statementService): JsonResponse
+    public function index(Statement $statementService, Normalizer $normalizer): JsonResponse
     {
-        $result = [];
-        foreach ($statementService->getAllProducts() as $prd)
-        {
-	        $result[] = $prd->getName();
-        }
+        $result = $statementService->getAllProducts();
+	
     	return $this->json(
-		    $result
+		    $normalizer->normalizeArray($result)
         );
     }
 	
@@ -28,6 +33,6 @@ class ApiProductController extends AbstractController
 	{
 		$data = $request->toArray();
 		$id = $statementService->createProduct($data['name']);
-		return $this->json(['id' => $id]);
+		return $this->json(['id' => $id], Response::HTTP_CREATED);
 	}
 }

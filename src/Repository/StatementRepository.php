@@ -38,6 +38,19 @@ class StatementRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+    
+    
+    public function getAllBeforeDate($postedAt = null): array
+    {
+	    return $this->createQueryBuilder('s')
+            ->andWhere('s.posted_at <= :postedAt')
+            ->setParameter('postedAt', $postedAt ?? date('Y-m-d'))
+            ->orderBy('s.id', 'ASC')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 
 //    /**
 //     * @return Statement[] Returns an array of Statement objects

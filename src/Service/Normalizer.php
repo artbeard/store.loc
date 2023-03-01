@@ -2,8 +2,12 @@
 
 namespace App\Service;
 
+use App\Entity\Product;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
+//use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
+use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
+
 use Symfony\Component\Serializer\Serializer;
 
 class Normalizer
@@ -12,20 +16,27 @@ class Normalizer
 	
 	public function __construct()
 	{
-		$dateNormalizeCallback = function ($innerObject, $outerObject, string $attributeName, string $format = null, array $context = [])
+		$dateNormalizeCallback = function ($innerObject)
 		{
-			return $innerObject instanceof \DateTime
+			return $innerObject instanceof \DateTimeInterface
 				? $innerObject->format('Y-m-d')
 				: '';
+		};
+		$productNormalizeCallback = function ($innerObject)
+		{
+			return $innerObject instanceof Product ? $innerObject->getName() : null;
 		};
 		$defaultContext = [
 			AbstractNormalizer::CALLBACKS => [
 				'balance_at'       => $dateNormalizeCallback,
+				'balanceAt'       => $dateNormalizeCallback,
 				'posted_at'       => $dateNormalizeCallback,
+				'postedAt'       => $dateNormalizeCallback,
+				'product'       => $productNormalizeCallback
 			],
 		];
 		$normalizers = [
-			new GetSetMethodNormalizer(null, null, null, null, null, $defaultContext),
+			new GetSetMethodNormalizer(null, new CamelCaseToSnakeCaseNameConverter(), null, null, null, $defaultContext),
 		];
 		
 		$this->serializer = new Serializer($normalizers, []);
@@ -42,7 +53,7 @@ class Normalizer
 		$result = [];
 		foreach ($entityArray as $entity)
 		{
-			$result = $this->normalize($entity);
+			$result[] = $this->normalize($entity);
 		}
 		return $result;
 	}

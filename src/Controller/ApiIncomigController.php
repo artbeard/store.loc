@@ -20,7 +20,7 @@ class ApiIncomigController extends AbstractController
 	    ]);
     }
     
-	#[Route('/api/incomig', name: 'app_api_add_incomig', methods: ['POST'])]
+	#[Route('/api/incomig', name: 'app_api_incomig_add', methods: ['POST'])]
 	public function add_incomig(Request $request, Statement $statementService): Response
 	{
 
@@ -28,7 +28,7 @@ class ApiIncomigController extends AbstractController
 		
 		return $this->json($request->toArray());
 	}
-
+	
 	#[Route('/api/expense', name: 'app_api_add_expense', methods: ['POST'])]
 	public function add_expense(Request $request, Statement $statementService): Response
 	{
