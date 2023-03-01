@@ -8,6 +8,7 @@ use App\Entity\Product;
 use App\Entity\Statement as StatementEntity;
 use App\StatementTypes;
 use App\Entity\Balance;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Exception\ApiException;
 
@@ -17,74 +18,79 @@ class Statement
 	protected ManagerRegistry $doctrine;
 	protected ObjectManager $entityManager;
 	protected ValidatorInterface $validator;
-
-	public function __construct(ManagerRegistry $doctrine, ValidatorInterface $validator){
+	protected \DateTimeImmutable $currentDate;
+	
+	public function __construct(ManagerRegistry $doctrine, ValidatorInterface $validator, RequestStack $requestStack){
 		$this->doctrine = $doctrine;
 		$this->entityManager = $this->doctrine->getManager();
 		$this->validator = $validator;
+		$this->currentDate = new \DateTimeImmutable(
+			$requestStack->getCurrentRequest()->headers->get('x-current-date') ?? date('Y-m-d')
+		);
 	}
 	
+	/**
+	 * Список карточек с продуктами
+	 * @return Product[]|array|object[]
+	 */
 	public function getAllProducts()
 	{
 		return $this->entityManager->getRepository(Product::class)->findAll();
 	}
 	
+	/**
+	 * Согдаем карточку продукта
+	 * @param $name
+	 * @return int|null
+	 */
 	public function createProduct($name)
 	{
 		$product = new Product();
 		$product->setName($name);
-		//todo добавить валидатор
-		//if ($this->validate($product))
-		//{
-			$this->entityManager->persist($product);
-			$this->entityManager->flush();
-			return $product->getId();
-		//}
-		//throw new \Exception('Не удвлось создать Товар');
+		$this->entityManager->persist($product);
+		$this->entityManager->flush();
+		return $product->getId();
 	}
 	
 	
-	public function getAllPostst()
+	/**
+	 * Возвращает массив с проводками на текщую дату
+	 * @return array
+	 */
+	public function getAllPosts(): array
 	{
 		$statementRepository = $this->entityManager
 			->getRepository(StatementEntity::class);
-		return $statementRepository->getAllBeforeDate();
+		return $statementRepository->getAllBeforeDate($this->currentDate);
 	}
 	
 	public function addIncomePost(array $statementData)
 	{
-		$date = new \DateTimeImmutable('2023-03-02'.' 00:00:00');
-		
-		$balanceRepository = $this->entityManager
-			->getRepository(Balance::class);
-		
-		$statementRepository = $this->entityManager
-			->getRepository(StatementEntity::class);
-		
+		$balanceRepository = $this->entityManager->getRepository(Balance::class);
+		$statementRepository = $this->entityManager->getRepository(StatementEntity::class);
 		$product = $this->entityManager->getRepository(Product::class)
 			->find($statementData['product_id']);
 		
-		$balance = $balanceRepository
-			->findLastPost($product, $date);
+		$balance = $balanceRepository->findLastPost($product, $this->currentDate);
 		
 		$statement = new StatementEntity();
 		$statement->setAmount($statementData['amount']);
 		$statement->setCost($statementData['cost']);
 		$statement->setDocumentProp($statementData['document_prop']);
 		$statement->setPostType(StatementTypes::POST_IN);
-		$statement->setPostedAt($date);
+		$statement->setPostedAt($this->currentDate);
 		$statement->setProduct($product);
-		
-		$errors = $this->validator->validate($statement);
-		if (count($errors) > 0)
-		{
-			$err=[];
-			foreach ($errors as $_err)
-			{
-				$err[$_err->getPropertyPath()] = $_err->getMessage();
-			}
-			throw new ApiException(json_encode($err));
-		}
+		//todo позже протестировать работу валидатора
+//		$errors = $this->validator->validate($statement);
+//		if (count($errors) > 0)
+//		{
+//			$err=[];
+//			foreach ($errors as $_err)
+//			{
+//				$err[$_err->getPropertyPath()] = $_err->getMessage();
+//			}
+//			throw new ApiException(json_encode($err));
+//		}
 		$statementRepository->save($statement, true);
 		//Если проводка успешно прошла
 		//Записываем изменения в баланс
@@ -92,13 +98,13 @@ class Statement
 		{
 			//Если проводок по данному товару еще не было
 			//или они были в прошлм, создаем новую запись с текущей датой
-			if (is_null($balance) || $balance->getBalanceAt() < $date)
+			if (is_null($balance) || $balance->getBalanceAt() < $this->currentDate)
 			{
 				$oldAmount = is_null($balance) ? 0 : $balance->getAmount();
 				$oldCost = is_null($balance) ? 0 : $balance->getCost();
 				$balance = new Balance();
 				$balance->setProduct($product);
-				$balance->setBalanceAt($date);
+				$balance->setBalanceAt($this->currentDate);
 				$balance->setAmount($oldAmount);
 				$balance->setCost($oldCost);
 			}
@@ -125,37 +131,15 @@ class Statement
 	
 	public function getBalance()
 	{
-		$date = new \DateTimeImmutable('2023-03-02'.' 00:00:00');
-		
 		$balanceRepository = $this->entityManager->getRepository(Balance::class);
-		
-		$productRepository = $this->entityManager->getRepository(Product::class);
-		
-		$r = $balanceRepository->getBalance();
-		dump($r); exit();
-		return $r;
-/*
-		 SELECT
-	`product`.`id`, `product`.`name`, `balance`.`cost`, `balance`.`amount`, `balance`.`balance_at`
-FROM
-	`product`
-INNER JOIN
-	(SELECT product_id, MAX(balance_at) as max_balance_at FROM `balance` GROUP BY product_id) as `tmp_t`
-ON
-	`product`.`id` = `tmp_t`.`product_id`
-INNER JOIN
-	balance
-ON `balance`.`balance_at` = `tmp_t`.max_balance_at AND product.id = balance.product_id;
-
-*/
-	
+		return $balanceRepository->getBalance($this->currentDate);
 	}
 	
 	
 	
 	
 	
-
+	//todo вынести отсюда списывающий метод
 	public function addPost(array $statementData, string $statementType = StatementTypes::POST_IN)
 	{
 		$statementRepository = $this->entityManager
