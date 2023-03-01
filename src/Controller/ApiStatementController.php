@@ -16,26 +16,27 @@ class ApiStatementController extends AbstractController
     #[Route('/api/statement', name: 'app_api_statement', methods: ['GET'])]
     public function index(Statement $statementService, Normalizer $normalizer): JsonResponse
     {
-	    $postList = $statementService->getAllPostst();
+	    $postList = $statementService->getAllPosts();
 	    return $this->json(
 	    	$normalizer->normalizeArray($postList)
 	    );
     }
-    
+	
+	/**
+	 * @throws \App\Exception\ApiException
+	 */
 	#[Route('/api/statement/income', name: 'app_api_statement_add_income', methods: ['POST'])]
 	public function add_income(Request $request, Statement $statementService): Response
 	{
 		$data = $request->toArray();
-		$data['posted_at'] = '2023-02-30';
 		$statement = $statementService->addIncomePost($data);
-		
 		return $this->json([
 			'id' => $statement->getId()
 		], Response::HTTP_CREATED);
 	}
 	
 	#[Route('/api/statement/balance', name: 'app_api_statement_balance', methods: ['GET'])]
-	public function get_balamce(Statement $statementService, Normalizer $normalizer): JsonResponse
+	public function get_balance(Statement $statementService, Normalizer $normalizer): JsonResponse
 	{
 		$balance = $statementService->getBalance();
 		return $this->json(
