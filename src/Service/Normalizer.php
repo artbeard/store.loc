@@ -5,11 +5,12 @@ namespace App\Service;
 use App\Entity\Product;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
-//use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
-
 use Symfony\Component\Serializer\Serializer;
 
+/**
+ * Нормализатор для вывода сущностей в виде массивов
+ */
 class Normalizer
 {
 	protected $serializer;
