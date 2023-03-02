@@ -13,7 +13,13 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ApiPreorderController extends AbstractController
 {
- 
+	
+	/**
+	 * Список предзаказов
+	 * @param Preorder $preorderService
+	 * @param Normalizer $normalizer
+	 * @return JsonResponse
+	 */
 	#[Route('/api/preorder', name: 'app_api_preorder',  methods: 'GET')]
     public function index(Preorder $preorderService, Normalizer $normalizer): JsonResponse
     {
@@ -23,6 +29,12 @@ class ApiPreorderController extends AbstractController
 	    );
     }
 	
+	/**
+	 * Добалвение предзаказа
+	 * @param Request $request
+	 * @param Preorder $preorderService
+	 * @return JsonResponse
+	 */
 	#[Route('/api/preorder', name: 'app_api_preorder_add', methods: 'POST')]
 	public function add_preorder(Request $request, Preorder $preorderService): JsonResponse
 	{
@@ -34,6 +46,10 @@ class ApiPreorderController extends AbstractController
 	}
 	
 	/**
+	 * Проводка предзаказа
+	 * @param Request $request
+	 * @param Preorder $preorderService
+	 * @return JsonResponse
 	 * @throws \App\Exception\ApiException
 	 */
 	#[Route('/api/preorder/expense', name: 'app_api_preorder_expense', methods: 'POST')]
