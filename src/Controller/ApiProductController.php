@@ -15,16 +15,27 @@ use App\Service\Statement;
  */
 class ApiProductController extends AbstractController
 {
-    #[Route('/api/product', name: 'app_api_product', methods: ['GET'])]
+	/**
+	 * Отдаем все карторчки товаров
+	 * @param Statement $statementService
+	 * @param Normalizer $normalizer
+	 * @return JsonResponse
+	 */
+	#[Route('/api/product', name: 'app_api_product', methods: ['GET'])]
     public function index(Statement $statementService, Normalizer $normalizer): JsonResponse
     {
         $result = $statementService->getAllProducts();
-	
     	return $this->json(
 		    $normalizer->normalizeArray($result)
         );
     }
 	
+	/**
+	 * Добавляем карточку товара
+	 * @param Request $request
+	 * @param Statement $statementService
+	 * @return JsonResponse
+	 */
 	#[Route('/api/product', name: 'app_api_product_add', methods: ['POST'])]
 	public function add_product(Request $request, Statement $statementService): JsonResponse
 	{
