@@ -23,6 +23,7 @@ class ApiStatementController extends AbstractController
     }
 	
 	/**
+	 * Добавляет входящие проводки
 	 * @throws \App\Exception\ApiException
 	 */
 	#[Route('/api/statement/income', name: 'app_api_statement_add_income', methods: ['POST'])]
@@ -35,6 +36,14 @@ class ApiStatementController extends AbstractController
 		], Response::HTTP_CREATED);
 	}
 	
+	
+	
+	/**
+	 * Отображает баланс на текущую дату
+	 * @param Statement $statementService
+	 * @param Normalizer $normalizer
+	 * @return JsonResponse
+	 */
 	#[Route('/api/statement/balance', name: 'app_api_statement_balance', methods: ['GET'])]
 	public function get_balance(Statement $statementService, Normalizer $normalizer): JsonResponse
 	{
