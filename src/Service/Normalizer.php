@@ -10,6 +10,7 @@ use Symfony\Component\Serializer\Serializer;
 
 /**
  * Нормализатор для вывода сущностей в виде массивов
+ * Столкаем все крайние случаи в один валидатор (разные даты)
  */
 class Normalizer
 {
@@ -25,15 +26,20 @@ class Normalizer
 		};
 		$productNormalizeCallback = function ($innerObject)
 		{
-			return $innerObject instanceof Product ? $innerObject->getName() : null;
+			return $innerObject instanceof Product ? $innerObject->getId() : null;
 		};
 		$defaultContext = [
 			AbstractNormalizer::CALLBACKS => [
-				'balance_at'       => $dateNormalizeCallback,
-				'balanceAt'       => $dateNormalizeCallback,
-				'posted_at'       => $dateNormalizeCallback,
-				'postedAt'       => $dateNormalizeCallback,
+				'balance_at'    => $dateNormalizeCallback,
+				'balanceAt'     => $dateNormalizeCallback,
+				'posted_at'     => $dateNormalizeCallback,
+				'postedAt'      => $dateNormalizeCallback,
+				'sentAt'        => $dateNormalizeCallback,
+				'sent_at'       => $dateNormalizeCallback,
+				'ordered_at'    => $dateNormalizeCallback,
+				'orderedAt'     => $dateNormalizeCallback,
 				'product'       => $productNormalizeCallback
+				
 			],
 		];
 		$normalizers = [
