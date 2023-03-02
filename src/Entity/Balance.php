@@ -21,7 +21,7 @@ class Balance
     private ?int $amount = 0;
 
     #[ORM\Column]
-    private ?int $cost = 0;
+    private ?float $cost = 0;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $balance_at = null;
@@ -55,12 +55,12 @@ class Balance
         return $this;
     }
 
-    public function getCost(): ?int
+    public function getCost(): ?float
     {
         return $this->cost;
     }
 
-    public function setCost(int $cost): self
+    public function setCost(float $cost): self
     {
         $this->cost = $cost;
 
