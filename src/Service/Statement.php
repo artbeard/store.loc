@@ -9,49 +9,20 @@ use App\Entity\Statement as StatementEntity;
 use App\StatementTypes;
 use App\Entity\Balance;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Exception\ApiException;
 
 
 class Statement
 {
-	protected ManagerRegistry $doctrine;
 	protected ObjectManager $entityManager;
-	protected ValidatorInterface $validator;
 	protected \DateTimeImmutable $currentDate;
 	
-	public function __construct(ManagerRegistry $doctrine, ValidatorInterface $validator, RequestStack $requestStack){
-		$this->doctrine = $doctrine;
-		$this->entityManager = $this->doctrine->getManager();
-		$this->validator = $validator;
+	public function __construct(ManagerRegistry $doctrine, RequestStack $requestStack){
+		$this->entityManager = $doctrine->getManager();
 		$this->currentDate = new \DateTimeImmutable(
 			$requestStack->getCurrentRequest()->headers->get('x-current-date') ?? date('Y-m-d')
 		);
 	}
-	
-	/**
-	 * Список карточек с продуктами
-	 * @return Product[]|array|object[]
-	 */
-	public function getAllProducts()
-	{
-		return $this->entityManager->getRepository(Product::class)->findAll();
-	}
-	
-	/**
-	 * Согдаем карточку продукта
-	 * @param $name
-	 * @return int|null
-	 */
-	public function createProduct($name)
-	{
-		$product = new Product();
-		$product->setName($name);
-		$this->entityManager->persist($product);
-		$this->entityManager->flush();
-		return $product->getId();
-	}
-	
 	
 	/**
 	 * Возвращает массив с проводками на текщую дату
