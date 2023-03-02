@@ -6,6 +6,10 @@ use App\Repository\BalanceRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Вспомогательная сущность для хранения данных о балансе и истории его изменения
+ * Нужна чтобы осовободить БД от постоянных подсчетов количества товаров и их стоимости
+ */
 #[ORM\Entity(repositoryClass: BalanceRepository::class)]
 class Balance
 {
