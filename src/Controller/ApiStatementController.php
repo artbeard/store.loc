@@ -13,7 +13,13 @@ use App\Service\Normalizer;
 
 class ApiStatementController extends AbstractController
 {
-    #[Route('/api/statement', name: 'app_api_statement', methods: ['GET'])]
+	/**
+	 * Отдаем записи из реестра
+	 * @param Statement $statementService
+	 * @param Normalizer $normalizer
+	 * @return JsonResponse
+	 */
+	#[Route('/api/statement', name: 'app_api_statement', methods: ['GET'])]
     public function index(Statement $statementService, Normalizer $normalizer): JsonResponse
     {
 	    $postList = $statementService->getAllPosts();
