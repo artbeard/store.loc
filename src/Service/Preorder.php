@@ -7,7 +7,6 @@ use App\Exception\ApiException;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Entity\Preorder as PreorderEntity;
 
 class Preorder
@@ -16,7 +15,7 @@ class Preorder
 	protected ObjectManager $entityManager;
 	protected \DateTimeImmutable $currentDate;
 	protected Statement $statementService;
-	
+
 	public function __construct(ManagerRegistry $doctrine, RequestStack $requestStack, Statement $statementService){
 		$this->doctrine = $doctrine;
 		$this->entityManager = $this->doctrine->getManager();
@@ -25,7 +24,7 @@ class Preorder
 		);
 		$this->statementService = $statementService;
 	}
-	
+
 	/**
 	 * Возвращает предзаказы с указанной датой
 	 * Возвращаются предзаказы, сделанные предыдущей датой
@@ -40,7 +39,7 @@ class Preorder
 		$preorderRepository = $this->entityManager->getRepository(PreorderEntity::class);
 		return $preorderRepository->getPreordersByDate($currentDate);
 	}
-	
+
 	/**
 	 * Добавляет предзаказ на текущую дату
 	 * @param array $preorderData
@@ -59,7 +58,7 @@ class Preorder
 			->save($preorder, true);
 		return $preorder;
 	}
-	
+
 	/**
 	 * Выполняет проводку предзаказа
 	 * @param int $preorder_id
@@ -71,7 +70,7 @@ class Preorder
 	{
 		$preorder = $this->entityManager->getRepository(PreorderEntity::class)
 			->find($preorder_id);
-		
+
 		if ( is_null($preorder) )
 		{
 			throw new ApiException('Не удалось найти предзаказ с id = '.$preorder_id);
@@ -79,17 +78,17 @@ class Preorder
 		$preorder
 			->setPrice($price)
 			->setSentAt($this->currentDate);
-		
+
 		$this->statementService->addexpensePost([
 			'amount' => $preorder->getAmount(),
 			'document_prop' => $preorder->getDocumentProp(),
 			'product' => $preorder->getProduct(),
 		]);
-		
-		
+
+
 		$this->entityManager->getRepository(PreorderEntity::class)
 			->save($preorder, true);
 		return $preorder;
 	}
-	
+
 }

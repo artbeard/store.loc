@@ -11,22 +11,22 @@ class Product
 {
 	protected ObjectManager $entityManager;
 	protected \DateTimeImmutable $currentDate;
-	
+
 	public function __construct(ManagerRegistry $doctrine, RequestStack $requestStack){
 		$this->entityManager = $doctrine->getManager();
 		$this->currentDate = new \DateTimeImmutable(
 			$requestStack->getCurrentRequest()->headers->get('x-current-date') ?? date('Y-m-d')
 		);
 	}
-	
+
 	/**
 	 * @return array
 	 */
 	public function getAllProducts(): array
 	{
-		return $this->entityManager->getRepository(Product::class)->findAll();
+		return $this->entityManager->getRepository(ProductEntity::class)->findAll();
 	}
-	
+
 	/**
 	 * Согдаем карточку продукта
 	 * @param $name
