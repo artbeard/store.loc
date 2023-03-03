@@ -16,14 +16,14 @@ class Statement
 {
 	protected ObjectManager $entityManager;
 	protected \DateTimeImmutable $currentDate;
-	
+
 	public function __construct(ManagerRegistry $doctrine, RequestStack $requestStack){
 		$this->entityManager = $doctrine->getManager();
 		$this->currentDate = new \DateTimeImmutable(
 			$requestStack->getCurrentRequest()->headers->get('x-current-date') ?? date('Y-m-d')
 		);
 	}
-	
+
 	/**
 	 * Возвращает массив с проводками на текщую дату
 	 * @return array
@@ -34,7 +34,7 @@ class Statement
 			->getRepository(StatementEntity::class);
 		return $statementRepository->getAllBeforeDate($this->currentDate);
 	}
-	
+
 	/**
 	 * Добавляет входящую проводку
 	 * @param array $statementData
@@ -47,9 +47,13 @@ class Statement
 		$statementRepository = $this->entityManager->getRepository(StatementEntity::class);
 		$product = $this->entityManager->getRepository(Product::class)
 			->find($statementData['product_id']);
-		
+        if (is_null($product))
+        {
+            throw new \Exception('Проводка с несуществующим продуктом невозможна');
+        }
+
 		$balance = $balanceRepository->findLastPost($product, $this->currentDate);
-		
+
 		$statement = new StatementEntity();
 		$statement->setAmount($statementData['amount']);
 		$statement->setCost($statementData['cost']);
@@ -92,7 +96,7 @@ class Statement
 			throw new \Exception('Не удалось провести проводку');
 		}
 	}
-	
+
 	/**
 	 * Добавлят исходящую проводку
 	 * @param array $statementData
@@ -103,18 +107,18 @@ class Statement
 	{
 		$balanceRepository = $this->entityManager->getRepository(Balance::class);
 		$statementRepository = $this->entityManager->getRepository(StatementEntity::class);
-		
+
 		$balance =  $balanceRepository->findLastPost($statementData['product'], $this->currentDate);
 		if (is_null($balance))
 		{
 			throw new ApiException('Данного товара на складе нет');
 		}
-		
+
 		if ($balance->getAmount() < $statementData['amount'])
 		{
 			throw new ApiException('Данного товара на сладе недостаточно');
 		}
-		
+
 		$statement = new StatementEntity();
 		$statement->setAmount($statementData['amount']);
 		$statement->setProduct($statementData['product']);
@@ -150,10 +154,10 @@ class Statement
 		{
 			throw new \Exception('Не удалось провести проводку');
 		}
-		
+
 		return $statement;
 	}
-	
+
 	/**
 	 * возвращает баланс на текущую дату
 	 * @return array
@@ -163,5 +167,5 @@ class Statement
 		$balanceRepository = $this->entityManager->getRepository(Balance::class);
 		return $balanceRepository->getBalance($this->currentDate);
 	}
-	
+
 }
